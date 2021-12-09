@@ -1,7 +1,8 @@
 # Lemon Squeezy Theme Schema
 
-This repository provides a schema for the Lemon Squeezy `theme.json` file as well as a CLI tool to generate a `theme.json` from a theme.
+This repository provides a schema for the Lemon Squeezy `theme.json` file as well as a CLI tools to generate and validate a `theme.json`.
 
 ```
 ls-theme-generate
+ls-theme-validate
 ```
