@@ -16,7 +16,7 @@ const moduleFromString = require('module-from-string');
                 type: 'string',
                 alias: 't',
                 default: './',
-                describe: 'Path to a Lemon Squeezzy theme directory'
+                describe: 'Path to a Lemon Squeezy theme directory'
             });
             yargs.positional('outputDir', {
                 type: 'string',
@@ -33,6 +33,7 @@ const moduleFromString = require('module-from-string');
             let theme = {
                 id: pkg.name,
                 meta: {
+                    name: pkg.name,
                     description: pkg.description || '',
                 },
                 settings: [],
@@ -41,7 +42,7 @@ const moduleFromString = require('module-from-string');
             };
 
             const components = loadComponents(path.resolve(themeDir, 'wedges'));
-            theme.settings = componentToWedgeConfig(components, themeDir);
+            theme.wedges = componentToWedgeConfig(components, themeDir);
 
             const output = JSON.stringify(theme, null, 4);
 
@@ -56,14 +57,15 @@ const moduleFromString = require('module-from-string');
 function componentToWedgeConfig(components, themeDir) {
     return components.map(component => {
         return {
+            name: component.name,
             component: component.file.replace(themeDir, '').replace(/^\//, ''),
             settings: component.props
         }
     });
 }
 
-function loadComponents(path) {
-    const files = glob.sync(`${path}/**/*.vue`);
+function loadComponents(wedgesPath) {
+    const files = glob.sync(`${wedgesPath}/**/*.vue`);
     return files.map(file => {
         console.log(`Processing ${file}...`);
         const content = fs.readFileSync(file).toString();
@@ -84,6 +86,7 @@ function loadComponents(path) {
 
         return {
             file: file,
+            name: path.parse(file).name,
             props: Object.values(props),
         }
     });
