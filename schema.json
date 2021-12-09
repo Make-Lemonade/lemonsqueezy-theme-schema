@@ -1,0 +1,119 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "Lemon Squeezy Theme Schema",
+    "required": [
+        "id",
+        "meta",
+        "settings",
+        "wedges",
+        "templates"
+    ],
+    "properties": {
+        "id": {
+            "$id": "#/properties/id",
+            "type": "string",
+            "description": "A unique identifier for this theme."
+        },
+        "meta": {
+            "$id": "#/properties/meta",
+            "type": "object",
+            "description": "Meta information for this theme.",
+            "required": ["name"],
+            "properties": {
+                "name": {
+                    "$id": "#/properties/meta/properties/name",
+                    "type": "string",
+                    "description": "The name of the theme."
+                },
+                "description": {
+                    "$id": "#/properties/meta/properties/description",
+                    "type": "string",
+                    "description": "A description of the theme."
+                }
+            }
+        },
+        "settings": {
+            "$id": "#/properties/settings",
+            "type": "array",
+            "description": "Any global settings for this theme.",
+            "items": { "$ref": "#/$defs/setting" },
+            "uniqueItems": true
+        },
+        "wedges": {
+            "$id": "#/properties/wedges",
+            "type": "array",
+            "description": "Any wedges for this theme.",
+            "items": { "$ref": "#/$defs/wedge" },
+            "uniqueItems": true
+        },
+        "templates": {
+            "$id": "#/properties/templates",
+            "type": "array",
+            "description": "Any templates for this theme.",
+            "items": {},
+            "uniqueItems": true
+        }
+    },
+    "$defs": {
+        "setting": {
+            "$id": "#/$defs/setting",
+            "type": "object",
+            "description": "A setting.",
+            "required": ["id", "type"],
+            "properties": {
+                "id": {
+                    "$id": "#/$defs/setting/properties/id",
+                    "type": "string",
+                    "description": "A unique identifier for this setting."
+                },
+                "type": {
+                    "$id": "#/$defs/setting/properties/type",
+                    "type": "string",
+                    "description": "The type of input for this setting."
+                },
+                "label": {
+                    "$id": "#/$defs/setting/properties/label",
+                    "type": "string",
+                    "description": "The label for this setting."
+                },
+                "placeholder": {
+                    "$id": "#/$defs/setting/properties/placeholder",
+                    "type": "string",
+                    "description": "The placeholder for this setting."
+                },
+                "validate": {
+                    "$id": "#/$defs/setting/properties/validate",
+                    "type": "string",
+                    "description": "The validation rules for this setting."
+                }
+            }
+        },
+        "wedge": {
+            "$id": "#/$defs/wedge",
+            "type": "object",
+            "description": "A wedge.",
+            "required": ["name", "component", "settings"],
+            "properties": {
+                "name": {
+                    "$id": "#/$defs/wedge/properties/name",
+                    "type": "string",
+                    "description": "The name of this wedge."
+                },
+                "component": {
+                    "$id": "#/$defs/wedge/properties/component",
+                    "type": "string",
+                    "description": "The relative path to the component for this wedge."
+                },
+                "settings": {
+                    "$id": "#/$defs/wedge/properties/settings",
+                    "type": "array",
+                    "description": "Any settings for this wedge.",
+                    "items": { "$ref": "#/$defs/setting" },
+                    "uniqueItems": true
+                }
+            }
+        }
+    }
+}
