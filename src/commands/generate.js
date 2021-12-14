@@ -1,58 +1,54 @@
-#!/usr/bin/env node
-
 const path = require('path');
 const fs = require('fs');
-const yargs = require('yargs');
 const glob = require('glob');
 const chalk = require('chalk');
 const compiler = require('vue-template-compiler');
 const moduleFromString = require('module-from-string');
 
-(async () => {
-    await yargs
-        .scriptName('ls-theme-generate')
-        .command('$0', 'Generate a Lemon Squeezy theme.json', (yargs) => {
-            yargs.positional('themeDir', {
-                type: 'string',
-                alias: 't',
-                default: './',
-                describe: 'Path to a Lemon Squeezy theme directory'
-            });
-            yargs.positional('outputDir', {
-                type: 'string',
-                alias: 'o',
-                default: './',
-                describe: 'Path to an output directory for the generated theme.json'
-            });
-        }, async (argv) => {
-            const themeDir = path.resolve(process.cwd(), argv.themeDir);
-            const outputDir = path.resolve(process.cwd(), argv.outputDir);
+exports.command = 'generate';
+exports.desc = 'Generate a Lemon Squeezy theme.json';
 
-            const pkg = require(path.resolve(themeDir, 'package.json'));
+exports.builder = (yargs) => {
+    yargs.positional('themeDir', {
+        type: 'string',
+        alias: 't',
+        default: './',
+        describe: 'Path to a Lemon Squeezy theme directory'
+    });
+    yargs.positional('outputDir', {
+        type: 'string',
+        alias: 'o',
+        default: './',
+        describe: 'Path to an output directory for the generated theme.json'
+    });
+}
 
-            let theme = {
-                id: pkg.name,
-                meta: {
-                    name: pkg.name,
-                    description: pkg.description || '',
-                },
-                settings: [],
-                wedges: [],
-                templates: []
-            };
+exports.handler = async (argv) => {
+    const themeDir = path.resolve(process.cwd(), argv.themeDir);
+    const outputDir = path.resolve(process.cwd(), argv.outputDir);
 
-            const components = loadComponents(path.resolve(themeDir, 'wedges'));
-            theme.wedges = componentToWedgeConfig(components, themeDir);
+    const pkg = require(path.resolve(themeDir, 'package.json'));
 
-            const output = JSON.stringify(theme, null, 4);
+    let theme = {
+        id: pkg.name,
+        meta: {
+            name: pkg.name,
+            description: pkg.description || '',
+        },
+        settings: [],
+        wedges: [],
+        templates: []
+    };
 
-            const themePath = path.resolve(outputDir, 'theme.json');
-            fs.writeFileSync(themePath, output);
-            console.log(chalk.green(`Wrote theme.json to ${themePath}`));
-        })
-        .help()
-        .argv
-})();
+    const components = loadComponents(path.resolve(themeDir, 'wedges'));
+    theme.wedges = componentToWedgeConfig(components, themeDir);
+
+    const output = JSON.stringify(theme, null, 4);
+
+    const themePath = path.resolve(outputDir, 'theme.json');
+    fs.writeFileSync(themePath, output);
+    console.log(chalk.green(`Wrote theme.json to ${themePath}`));
+}
 
 function componentToWedgeConfig(components, themeDir) {
     return components.map(component => {

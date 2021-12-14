@@ -2,8 +2,7 @@
   "name": "lemonsqueezy-theme-schema",
   "version": "0.1.0",
   "bin": {
-    "ls-theme-generate": "./bin/generate.js",
-    "ls-theme-validate": "./bin/validate.js"
+    "ls-theme": "./bin/ls-theme.js"
   },
   "dependencies": {
     "ajv-cli": "^5.0.0",
