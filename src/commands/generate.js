@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const glob = require('glob');
 const chalk = require('chalk');
+const ray = require('node-ray').ray;
 const compiler = require('vue-template-compiler');
 const moduleFromString = require('module-from-string');
 
