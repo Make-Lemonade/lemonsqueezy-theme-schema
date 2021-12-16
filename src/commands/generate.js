@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const ray = require('node-ray').ray;
 const compiler = require('vue-template-compiler');
 const moduleFromString = require('module-from-string');
+const astWalker = require('@vuedx/template-ast-types');
 
 exports.command = 'generate';
 exports.desc = 'Generate a Lemon Squeezy theme.json';
@@ -24,6 +25,8 @@ exports.builder = (yargs) => {
     });
 }
 
+let elements = [];
+
 exports.handler = async (argv) => {
     const themeDir = path.resolve(process.cwd(), argv.themeDir);
     const outputDir = path.resolve(process.cwd(), argv.outputDir);
@@ -41,8 +44,9 @@ exports.handler = async (argv) => {
         templates: []
     };
 
-    const components = loadComponents(path.resolve(themeDir, 'wedges'));
-    theme.wedges = componentToWedgeConfig(components, themeDir);
+    elements     = loadElements(path.resolve(themeDir, 'elements'));
+    const wedges = loadWedges(path.resolve(themeDir, 'wedges'));
+    theme.wedges = componentToWedgeConfig(wedges, themeDir);
 
     const output = JSON.stringify(theme, null, 4);
 
@@ -56,37 +60,80 @@ function componentToWedgeConfig(components, themeDir) {
         return {
             name: component.name,
             component: component.file.replace(themeDir, '').replace(/^\//, ''),
-            settings: component.props
+            settings: component.settings,
+            elements: component.elements
         }
     });
 }
 
-function loadComponents(wedgesPath) {
+function loadElements(elementsPath) {
+    const files = glob.sync(`${elementsPath}/**/*.vue`);
+    return files.map(file => {
+        console.log(`Processing ${file}...`);
+        const content = fs.readFileSync(file).toString();
+        const parsed = compiler.parseComponent(content);
+
+        const settings = componentPropsToSettings(parsed);
+
+        return {
+            file: file,
+            name: path.parse(file).name,
+            settings: settings,
+        }
+    });
+}
+
+function loadWedges(wedgesPath) {
     const files = glob.sync(`${wedgesPath}/**/*.vue`);
     return files.map(file => {
         console.log(`Processing ${file}...`);
         const content = fs.readFileSync(file).toString();
         const parsed = compiler.parseComponent(content);
 
-        let props = {};
-        if (parsed.script) {
-            const script = moduleFromString.importFromStringSync(parsed.script.content);
-            props = script.default.props ? script.default.props : {};
-            props = typeof props === 'object' ? props : {}; // Arrays not supported
+        const settings = componentPropsToSettings(parsed);
 
-            props = objectMap(props, (prop, key) => {
-                prop = typeof prop === 'object' ? prop : {}; // Arrays not supported
-                return transformProp(key, prop);
-            });
-            props = JSON.parse(JSON.stringify(props));
-        }
+        let wedgeElements = [];
+        const elementTags = elements.map(e => e.name);
+        const component = compiler.compile(content);
+        astWalker.traverseFast(component.ast, node => {
+            if (elementTags.includes(node.tag) && node.attrsMap.id) {
+                const thisElement = elements.find(e => e.name === node.tag);
+                if (thisElement) {
+                    wedgeElements.push({
+                        type: node.tag,
+                        id: node.attrsMap.id,
+                        settings: thisElement.settings
+                    });
+                }
+            }
+        });
 
         return {
             file: file,
             name: path.parse(file).name,
-            props: Object.values(props),
+            settings: settings,
+            elements: wedgeElements
         }
     });
+}
+
+function componentPropsToSettings(parsedComponent) {
+    let settings = {};
+
+    if (parsedComponent.script) {
+        const script = moduleFromString.importFromStringSync(parsedComponent.script.content);
+        let props = script.default.props ? script.default.props : {};
+        props = typeof props === 'object' ? props : {}; // Arrays not supported
+
+        props = objectMap(props, (prop, key) => {
+            prop = typeof prop === 'object' ? prop : {}; // Arrays not supported
+            return transformProp(key, prop);
+        });
+
+        settings = JSON.parse(JSON.stringify(props));
+    }
+
+    return Object.values(settings);
 }
 
 function transformProp(key, prop) {
