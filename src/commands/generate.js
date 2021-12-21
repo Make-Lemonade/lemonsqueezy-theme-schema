@@ -65,7 +65,8 @@ function loadElements(elementsPath) {
         const content = fs.readFileSync(file).toString();
         const parsed = compiler.parseComponent(content);
 
-        const settings = componentPropsToSettings(parsed);
+        let settings = componentPropsToSettings(parsed);
+        settings = settings.filter(setting => setting.id !== 'id');
 
         return {
             file: file,
