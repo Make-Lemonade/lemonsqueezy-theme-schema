@@ -41,10 +41,13 @@ exports.handler = async (argv) => {
         },
         settings: [],
         wedges: [],
-        templates: []
+        elements: [],
+        templates: [],
     };
 
-    elements     = loadElements(path.resolve(themeDir, 'elements'));
+    elements       = loadElements(path.resolve(themeDir, 'elements'));
+    theme.elements = componentToElementConfig(elements, themeDir);
+
     const wedges = loadWedges(path.resolve(themeDir, 'wedges'));
     theme.wedges = componentToWedgeConfig(wedges, themeDir);
 
@@ -53,17 +56,6 @@ exports.handler = async (argv) => {
     const themePath = path.resolve(outputDir, 'theme.json');
     fs.writeFileSync(themePath, output);
     console.log(chalk.green(`Wrote theme.json to ${themePath}`));
-}
-
-function componentToWedgeConfig(components, themeDir) {
-    return components.map(component => {
-        return {
-            name: component.name,
-            component: component.file.replace(themeDir, '').replace(/^\//, ''),
-            settings: component.settings,
-            elements: component.elements
-        }
-    });
 }
 
 function loadElements(elementsPath) {
@@ -79,6 +71,16 @@ function loadElements(elementsPath) {
             file: file,
             name: path.parse(file).name,
             settings: settings,
+        }
+    });
+}
+
+function componentToElementConfig(components, themeDir) {
+    return components.map(component => {
+        return {
+            name: component.name,
+            component: component.file.replace(themeDir, '').replace(/^\//, ''),
+            settings: component.settings
         }
     });
 }
@@ -100,9 +102,8 @@ function loadWedges(wedgesPath) {
                 const thisElement = elements.find(e => e.name === node.tag);
                 if (thisElement) {
                     wedgeElements.push({
-                        type: node.tag,
                         id: node.attrsMap.id,
-                        settings: thisElement.settings
+                        type: node.tag,
                     });
                 }
             }
@@ -113,6 +114,17 @@ function loadWedges(wedgesPath) {
             name: path.parse(file).name,
             settings: settings,
             elements: wedgeElements
+        }
+    });
+}
+
+function componentToWedgeConfig(components, themeDir) {
+    return components.map(component => {
+        return {
+            name: component.name,
+            component: component.file.replace(themeDir, '').replace(/^\//, ''),
+            settings: component.settings,
+            elements: component.elements
         }
     });
 }

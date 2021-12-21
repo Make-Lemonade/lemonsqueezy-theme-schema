@@ -8,6 +8,7 @@
         "meta",
         "settings",
         "wedges",
+        "elements",
         "templates"
     ],
     "properties": {
@@ -46,6 +47,13 @@
             "type": "array",
             "description": "Any wedges for this theme.",
             "items": { "$ref": "#/$defs/wedge" },
+            "uniqueItems": true
+        },
+        "elements": {
+            "$id": "#/properties/elements",
+            "type": "array",
+            "description": "Any elements for this theme.",
+            "items": { "$ref": "#/$defs/element" },
             "uniqueItems": true
         },
         "templates": {
@@ -110,6 +118,31 @@
                     "$id": "#/$defs/wedge/properties/settings",
                     "type": "array",
                     "description": "Any settings for this wedge.",
+                    "items": { "$ref": "#/$defs/setting" },
+                    "uniqueItems": true
+                }
+            }
+        },
+        "element": {
+            "$id": "#/$defs/element",
+            "type": "object",
+            "description": "An element.",
+            "required": ["name", "component", "settings"],
+            "properties": {
+                "name": {
+                    "$id": "#/$defs/element/properties/name",
+                    "type": "string",
+                    "description": "The name of this element."
+                },
+                "component": {
+                    "$id": "#/$defs/element/properties/component",
+                    "type": "string",
+                    "description": "The relative path to the component for this element."
+                },
+                "settings": {
+                    "$id": "#/$defs/element/properties/settings",
+                    "type": "array",
+                    "description": "Any settings for this element.",
                     "items": { "$ref": "#/$defs/setting" },
                     "uniqueItems": true
                 }
