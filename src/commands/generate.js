@@ -44,7 +44,7 @@ exports.handler = async (argv) => {
         templates: [],
     };
 
-    elements       = loadElements(path.resolve(themeDir, 'node_modules/lemonsqueezy-theme-elements/src'));
+    elements       = loadElements(path.resolve(themeDir, 'node_modules/@lemonsqueezy/theme-elements/src'));
     theme.elements = componentToElementConfig(elements, themeDir);
 
     const wedges = loadWedges(path.resolve(themeDir, 'wedges'));
