@@ -1,5 +1,5 @@
 {
-  "name": "lemonsqueezy-theme-schema",
+  "name": "@lemonsqueezy/theme-schema",
   "version": "0.1.0",
   "bin": {
     "ls-theme": "./bin/ls-theme.js"
@@ -16,5 +16,8 @@
   },
   "devDependencies": {
     "node-ray": "^1.17.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
