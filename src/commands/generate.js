@@ -3,7 +3,7 @@ const fs = require('fs');
 const glob = require('glob');
 const chalk = require('chalk');
 const compiler = require('vue-template-compiler');
-const moduleFromString = require('module-from-string');
+const jsTokens = require('js-tokens');
 const astWalker = require('@vuedx/template-ast-types');
 
 exports.command = 'generate';
@@ -133,14 +133,13 @@ function componentPropsToSettings(parsedComponent) {
     let settings = {};
 
     if (parsedComponent.script) {
-        const script = moduleFromString.importFromStringSync(parsedComponent.script.content);
-        let props = script.default.props ? script.default.props : {};
-        props = typeof props === 'object' ? props : {}; // Arrays not supported
+        let props = propsFromScript(parsedComponent.script.content);
 
         props = objectMap(props, (prop, key) => {
             prop = typeof prop === 'object' ? prop : {}; // Arrays not supported
             return transformProp(key, prop);
         });
+        props = removeEmpty(props);
 
         settings = JSON.parse(JSON.stringify(props));
     }
@@ -148,15 +147,59 @@ function componentPropsToSettings(parsedComponent) {
     return Object.values(settings);
 }
 
+function propsFromScript(script) {
+    let depth = 0;
+    let isProps = false;
+    let isPropsObject = false;
+    let props = [];
+
+    Array.from(jsTokens(script)).forEach(item => {
+        if (isPropsObject && depth < 2) {
+            isProps = false;
+            isPropsObject = false;
+        }
+
+        if (item.type === 'IdentifierName' && item.value === 'props') {
+            isProps = true;
+            depth++;
+        }
+
+        if (isProps) {
+            if (item.type === 'Punctuator' && item.value === '{') {
+                isPropsObject = true;
+                depth++;
+            }
+            if (item.type === 'Punctuator' && item.value === '}') {
+                depth--;
+            }
+
+            if (isPropsObject) {
+                props.push(item.value);
+            }
+        }
+    });
+
+    const propsString = props.join('');
+    if (!propsString) {
+        return {};
+    }
+
+    return Function('"use strict";return (' + propsString + ')')();
+}
+
 function transformProp(key, prop) {
-    prop.input = prop.input ? prop.input : {
-        type: 'text'
-    };
+    if (!prop.input) {
+        return null;
+    }
 
     return {
         id: key,
         ...prop.input,
     };
+}
+
+function removeEmpty(obj) {
+    return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
 }
 
 function objectMap(obj, fn) {
